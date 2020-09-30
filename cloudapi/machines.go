@@ -168,6 +168,11 @@ type VmResponse struct {
 	Result VmDetails            `json:"result"`
 }
 
+type VmDefineResponse struct {
+	DcResponse
+	Result CreateMachineOpts    `json:"result"`
+}
+
 type VmsResponse struct {
 	DcResponse
 	Result []VmDetails            `json:"result"`
@@ -421,13 +426,31 @@ func (c *Client) GetMachine(machineID string) (*Machine, error) {
 }*/
 // DELME was GetVmExtended
 func (c *Client) GetMachine(machineID string) (*VmDetails, error) {
-//J
+	//J
 	var resp VmResponse
 	filter := NewFilter()
 	filter.Set("extended", "true")
 	req := request{
 		method:     client.GET,
 		url:        fmt.Sprintf("%s/%s/", "vm", machineID),
+		filter:		filter,
+		resp:		&resp,
+	}
+	if _, err := c.sendRequest(req); err != nil {
+		return nil, errors.Newf2(err, resp.Detail, "failed to get machine \"%s\"", machineID)
+	}
+	return &resp.Result, nil
+}
+
+func (c *Client) GetMachineDefinition(machineID string) (*CreateMachineOpts, error) {
+//J
+	var resp VmDefineResponse
+	filter := NewFilter()
+	filter.Set("extended", "true")
+	filter.Set("full", "true")
+	req := request{
+		method:     client.GET,
+		url:        fmt.Sprintf("%s/%s/define", "vm", machineID),
 		filter:		filter,
 		resp:		&resp,
 	}
